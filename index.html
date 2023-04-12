@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport"
+      content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+    <link href="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/tailwindcss/2.2.19/tailwind.min.css" type="text/css"
+      rel="stylesheet" />
+    <link rel="stylesheet" href="./index.css">
+    <title>人脸识别 demo</title>
+  </head>
+
+  <body>
+    <h1 class="text-center text-xl py-2"> 人脸识别 </h1>
+    <video id="video" autoplay class="w-full h-52 border border-8"></video>
+    <canvas id="canvas" class="w-full h-52 border border-8"></canvas>
+    <div id="responseInfo" class="text-sm"> </div>
+    <div class="text-center pt-4">
+      <button id="closeCamera" class="text-gray-100 rounded bg-blue-400 px-4 py-1" type="button"> 关闭摄像头 </button>
+      <button id="openCamera" class="text-gray-100 rounded bg-blue-400 px-4 py-1" type="button"> 开启摄像头 </button>
+      <button id="photograph" class="text-gray-100 rounded bg-blue-400 px-4 py-1" type="button"> 拍照并识别 </button>
+    </div>
+    <script>
+      const $ = (s) => document.querySelector(s)
+      const dom = {
+        video: $('#video'),
+        canvas: $('#canvas'),
+        closeCameraBtn: $('#closeCamera'),
+        openCameraBtn: $('#openCamera'),
+        photographBtn: $('#photograph'),
+        responseInfo: $('#responseInfo')
+      }
+      let fileData;
+      const width = dom.video.offsetWidth
+      const height = dom.video.offsetHeight
+
+      const accessToken = '24.638734e068af79928a24168be63ed323.2592000.1683876277.282335-32301683';
+      const group_id_list = 'test_user_001'
+      const image_type = 'BASE64'
+
+      dom.closeCameraBtn.addEventListener('click', closeCamera)
+      dom.openCameraBtn.addEventListener('click', openCamera)
+      dom.photographBtn.addEventListener('click', () => {
+        takePhoto()
+        request()
+      })
+
+      function request() {
+        if (dom.video.srcObject === null) {
+          return
+        }
+        const type = 'search' // 人脸库1：N搜索 文档: https://ai.baidu.com/ai-doc/FACE/Gk37c1uzc
+        const url = `https://aip.baidubce.com/rest/2.0/face/v3/${type}?access_token=${accessToken}`;
+        const image = fileData.slice(22)
+
+        const options = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', },
+          body: JSON.stringify({ image, image_type, group_id_list, }),
+        };
+
+        fetch(url, options)
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data);
+            dom.responseInfo.innerHTML =
+            `<span class='text-green-500'>${data.error_msg}：</span>` + 
+             JSON.stringify(data.result.user_list, (key, value) => {
+              if (key === 'user_id') {
+                return `<span class='text-red-500'>${value}</span>`
+              }
+              return value
+            }, 2)
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      };
+
+      function openCamera() {
+        if (dom.video.srcObject &&
+          dom.video.srcObject.getTracks().length > 0
+        ) {
+          return
+        }
+        const constraints = {
+          audio: false,
+          video: { width, height }
+        }
+        navigator.mediaDevices.getUserMedia(constraints)
+          .then((stream) => {
+            dom.video.srcObject = stream
+            dom.video.play()
+          }).catch((err) => {
+            console.log(err)
+          })
+      }
+
+      function closeCamera() {
+        if (dom.video.srcObject) {
+          dom.video.srcObject.getTracks().forEach((track) => {
+            track.stop()
+          })
+          dom.video.srcObject = null;
+        }
+      }
+
+      function takePhoto() {
+        if (dom.video.srcObject === null) {
+          return
+        }
+        const ctx = dom.canvas.getContext('2d')
+        dom.canvas.width = width
+        dom.canvas.height = height
+        ctx.drawImage(dom.video, 0, 0, width, height)
+        fileData = dom.canvas.toDataURL('image/png')
+      }
+
+
+
+    </script>
+  </body>
+
+</html>
