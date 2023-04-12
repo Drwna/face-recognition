@@ -46,7 +46,7 @@
           dom.video.srcObject = stream;
           dom.video.play();
         }, (error) => {
-          console.log(`访问用户媒体设备失败${error.name}, ${error.message}`);
+          console.log(`访问用户媒体设备失败 ${error.name}, ${error.message}`);
         });
 
         setMessage("正在识别...")
@@ -129,7 +129,11 @@
 
       }
 
-
+    </script>
+    <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
+    <script>
+      // VConsole 默认会挂载到 `window.VConsole` 上
+      var vConsole = new window.VConsole();
     </script>
   </body>
 
