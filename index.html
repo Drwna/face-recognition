@@ -10,11 +10,11 @@
       rel="stylesheet" />
     <link rel="stylesheet" href="./index.css">
     <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
-<script>
-  // VConsole 默认会挂载到 `window.VConsole` 上
-  var vConsole = new window.VConsole();
-</script>
-<title>人脸识别 demo</title>
+    <script>
+      // VConsole 默认会挂载到 `window.VConsole` 上
+      var vConsole = new window.VConsole();
+    </script>
+    <title>人脸识别 demo</title>
   </head>
 
   <body>
@@ -71,13 +71,13 @@
           .then((data) => {
             console.log(data);
             dom.responseInfo.innerHTML =
-            `<span class='text-green-500'>${data.error_msg}：</span>` + 
-             JSON.stringify(data.result.user_list, (key, value) => {
-              if (key === 'user_id') {
-                return `<span class='text-red-500'>${value}</span>`
-              }
-              return value
-            }, 2)
+              `<span class='text-green-500'>${data.error_msg}：</span>` +
+              JSON.stringify(data.result.user_list, (key, value) => {
+                if (key === 'user_id') {
+                  return `<span class='text-red-500'>${value}</span>`
+                }
+                return value
+              }, 2)
           })
           .catch((error) => {
             console.error(error);
@@ -92,10 +92,13 @@
         }
         const constraints = {
           audio: false,
-          video: { width, height,
-                 facingMode: "user" }
-                 }
+          video: {
+            width,
+            height,
+            facingMode: "user"
+          }
         }
+
         navigator.mediaDevices.getUserMedia(constraints)
           .then((stream) => {
             dom.video.srcObject = stream
@@ -104,6 +107,7 @@
             console.log(err)
           })
       }
+
 
       function closeCamera() {
         if (dom.video.srcObject) {
