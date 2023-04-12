@@ -46,7 +46,7 @@
           dom.video.srcObject = stream;
           dom.video.play();
         }, (error) => {
-          console.log(`访问用户媒体设备失败${error.name}, ${error.message}`);
+          console.log(`访问用户媒体设备失败 ${error.name}, ${error.message}`);
         });
 
         setMessage("正在识别...")
@@ -91,8 +91,7 @@
         const imgBase64 = dom.canvas.toDataURL('image/jpeg');
 
         const accessToken = '24.638734e068af79928a24168be63ed323.2592000.1683876277.282335-32301683';
-        // const group_id_list = 'test_user_001'
-        const group_id_list = 'test_user_001='
+        const group_id_list = 'test_user_001'
         const image_type = 'BASE64'
         const type = 'search' // 人脸库1：N搜索 文档: https://ai.baidu.com/ai-doc/FACE/Gk37c1uzc
         const url = `https://aip.baidubce.com/rest/2.0/face/v3/${type}?access_token=${accessToken}`;
@@ -129,7 +128,11 @@
 
       }
 
-
+    </script>
+    <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
+    <script>
+      // VConsole 默认会挂载到 `window.VConsole` 上
+      var vConsole = new window.VConsole();
     </script>
   </body>
 
