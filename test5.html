@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport"
+      content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+    <link href="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/tailwindcss/2.2.19/tailwind.min.css" type="text/css"
+      rel="stylesheet" />
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/Base64/1.2.0/base64.min.js"></script>
+    <title>视频活体检测</title>
+  </head>
+
+  <body class="w-screen h-screen pt-4 bg-gray-200 ">
+    <video id="video" width="300" height="300" class="rounded-full mx-auto" style="width:300px;height:300px;"></video>
+    <!-- <p id="ts" class="mt-4 text-center text-red-500"></p> -->
+    <p id="msg" class="mt-4 text-center text-red-500"></p>
+    <canvas class="hidden" id="canvas" width="300" height="300" style="width:300px;height:300px;"></canvas>
+    <div id="result" class="px-4"></div>
+    <script>
+
+      const dom = {
+        video: document.getElementById('video'),
+        canvas: document.getElementById('canvas'),
+        msg: document.getElementById('msg'),
+        result: document.getElementById('result'),
+      }
+
+      if (navigator.mediaDevices.getUserMedia || navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia) {
+        //调用用户媒体设备, 访问摄像头
+        const constraints = {
+          video: {
+            width: 300,
+            height: 300,
+            facingMode: 'user'
+          }
+        };
+        getUserMedia(constraints, (stream) => {
+          console.log(stream);
+          //将视频流设置为video元素的源
+          dom.video.srcObject = stream;
+          dom.video.play();
+
+          const options = {
+            mimeType: 'video/webm;codecs=vp9',
+          }
+          const mediaRecorder = new MediaRecorder(stream, options);
+          mediaRecorder.start();
+          mediaRecorder.ondataavailable = (e) => {
+            console.log(e.data);
+          }
+          // 5秒后停止录制
+          setTimeout(() => {
+            mediaRecorder.stop();
+
+            setMessage("正在识别...")
+          }, 5000);
+          console.log(mediaRecorder.state);
+        }, (error) => {
+          console.log(`访问用户媒体设备失败 ${error.name}, ${error.message}`);
+        });
+
+      } else {
+        alert('不支持访问用户媒体');
+      }
+
+      //访问用户媒体设备的兼容方法
+      function getUserMedia(constraints, success, error) {
+        if (navigator.mediaDevices.getUserMedia) {
+          //最新的标准API
+          navigator.mediaDevices.getUserMedia(constraints).then(success).catch(error);
+        } else if (navigator.webkitGetUserMedia) {
+          //webkit核心浏览器
+          navigator.webkitGetUserMedia(constraints, success, error)
+        } else if (navigator.mozGetUserMedia) {
+          //firfox浏览器
+          navigator.mozGetUserMedia(constraints, success, error);
+        } else if (navigator.getUserMedia) {
+          //旧版API
+          navigator.getUserMedia(constraints, success, error);
+        }
+      }
+
+      function setMessage(msg) {
+        setTimeout(() => {
+          $("#msg").html(msg);
+          request()
+        }, 1500);
+      }
+
+      let count = 0;
+      const maxCount = 5; // 最大识别次数
+
+      function request() {
+        count++
+        if (count > 5) {
+          dom.msg.innerHTML = `次数超过${maxCount}次，请稍后再试。`
+          return
+        }
+        return;
+        const context = dom.canvas.getContext('2d');
+        context.drawImage(dom.video, 0, 0, 300, 300);
+        const imgBase64 = dom.canvas.toDataURL('image/jpeg');
+
+        const accessToken = '24.638734e068af79928a24168be63ed323.2592000.1683876277.282335-32301683';
+        const group_id_list = 'test_user_001'
+        const image_type = 'BASE64'
+        const type = 'faceverify' // 人脸库1：N搜索 文档: https://ai.baidu.com/ai-doc/FACE/Gk37c1uzc
+        const url = `https://aip.baidubce.com/rest/2.0/face/v3/${type}?access_token=${accessToken}`;
+        const image1 = imgBase64.slice(22)
+        const image2 = imgBase64.slice(22)
+
+        $.ajax({
+          url,
+          type: 'POST',
+          dataType: 'json',
+          data: [
+            { image: image1, image_type, },
+            { image: image2, image_type, },
+          ],
+          success: (data) => {
+            console.log('请求成功：', data)
+            dom.msg.innerHTML = data.error_msg
+            if (data.result) {
+              dom.result.innerHTML = (
+                `
+              <p>用户组：${data.result.user_list[0].group_id}</p>
+              <p>用户ID：${data.result.user_list[0].user_id}</p>
+              <p>用户信息：${data.result.user_list[0].user_info}</p>
+              <p>置信度：${data.result.user_list[0].score}</p>
+              `
+              )
+            } else {
+              dom.msg.innerHTML = '识别失败，正在重试...'
+              setTimeout(() => {
+                request()
+              }, 1500);
+            }
+          },
+          error: (error) => {
+            console.log('请求失败：', error)
+          }
+        })
+      }
+
+
+
+    </script>
+    <!-- <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
+    <script>
+      // VConsole 默认会挂载到 `window.VConsole` 上
+      var vConsole = new window.VConsole();
+    </script> -->
+  </body>
+
+</html>

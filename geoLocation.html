@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport"
+      content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+    <link href="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/tailwindcss/2.2.19/tailwind.min.css" type="text/css"
+      rel="stylesheet" />
+    <!-- <script src="https://api.map.baidu.com/api?v=3.0&ak=HL9Gu2WqGI8ZSNljV8Ole8CNWSk2OfdI"></script> -->
+    <title>获取地理位置</title>
+  </head>
+
+  <body>
+    <div id="container" class="w-screen h-screen"> </div>
+    <script>
+
+      loadScript()
+
+      function loadScript() {
+        var script = document.createElement("script");
+        script.src = "https://api.map.baidu.com/api?v=3.0&ak=HL9Gu2WqGI8ZSNljV8Ole8CNWSk2OfdI&callback=initialize";
+        document.body.appendChild(script);
+      }
+
+      function initialize() {
+
+        var map = new BMap.Map("container");
+        var point = new BMap.Point(116.331398, 39.897445);
+        map.centerAndZoom(point, 12);
+
+        var geolocation = new BMap.Geolocation();
+        geolocation.getCurrentPosition(function (r) {
+          console.log('r', r);
+          console.log('this', this);
+          console.log('this.getStatus', this.getStatus)
+          if (this.getStatus() == BMAP_STATUS_SUCCESS) {
+            var mk = new BMapGL.Marker(r.point);
+            map.addOverlay(mk);
+            map.panTo(r.point);
+            alert('您的位置：' + r.point.lng + ',' + r.point.lat);
+          }
+          else {
+            alert('failed' + this.getStatus());
+          }
+        });
+
+        // 地理位置
+        // var geolocation = new BMap.Geolocation();
+        // geolocation.getCurrentPosition(function (r) {
+        //   if (this.getStatus() == BMAP_STATUS_SUCCESS) {
+        //     var mk = new BMap.Marker(r.point);
+        //     map.addOverlay(mk);
+        //     map.panTo(r.point);
+        //     alert('您的位置：' + r.point.lng + ',' + r.point.lat);
+        //   }
+        //   else {
+        //     alert('failed ' + this.getStatus());
+        //   }
+        // }, { enableHighAccuracy: true })
+
+        // ip定位
+        // var myCity = new BMap.LocalCity();
+        // myCity.get(result => {
+        //   var cityName = result.name;
+        //   map.setCenter(cityName);
+        //   alert("当前定位城市:" + cityName);
+        // });
+
+      }
+
+    </script>
+  </body>
+
+</html>
